@@ -146,7 +146,7 @@ public class Btree {
     }
 
     public void delete(long key) {
-        //remembering the path
+        //запоминаем пусть
         ArrayList<Integer> path = new ArrayList<>();
         for (int nodeIdx = root; ; ) {
             path.add(nodeIdx);
@@ -160,35 +160,35 @@ public class Btree {
         Node node = nodes.get(path.get(idxInPath));
         int idx = node.find(key);
         if (node.keys[idx] != key) {
-            // key is not found, nothing to do
+            // ключ не найден, ничего не делать
             return;
         }
         for (; ; ) {
-            // remove the record
+            // удалить запись
             values.delete(node.refs[idx]);
             arraycopy(node.keys, idx + 1, node.keys, idx, node.keysCount - (idx + 1));
             arraycopy(node.refs, idx + 1, node.refs, idx, node.keysCount - idx);
             node.keysCount--;
-            // check if number of records is valid
+            // проверьте, действительно ли количество записей
             if (node.keysCount * 2 >= N || idxInPath == 0) {
-                // node is valid, no action required
+                // узел действителен, никаких действий не требуется
                 return;
             }
-            // need to join or balance nodes
+            // необходимо присоединить или сбалансировать узлы
             Node parent = nodes.get(path.get(idxInPath - 1));
             int pidx = parent.find(key);
             if (pidx == parent.keysCount) pidx--;
-            // parent has both children: pidx and pidx+1
-            // check whether we could join the children
+            // родитель имеет обоих детей: pidx и pidx + 1
+            // проверить, можем ли мы присоединиться к детям
             int refsCount = nodes.get(parent.refs[pidx]).keysCount + (node.isLeaf ? 0 : 1);
             if (refsCount + (nodes.get(parent.refs[pidx + 1]).keysCount + 1) > N + 1) {
-                // impossible to join nodes
+                // невозможно объединить узлы
                 balanceNodes(parent, pidx);
                 return;
             }
-            // join nodes
+            // присоединиться к узлам
             joinNodes(parent, pidx);
-            // prepare to delete record from parent
+            // подготовить удаление записи от родителя
             idxInPath--;
             parent.refs[pidx + 1] = parent.refs[pidx];
             node = parent;
@@ -200,14 +200,14 @@ public class Btree {
         assert (pidx < parent.keysCount);
         Node ch1 = nodes.get(parent.refs[pidx]), ch2 = nodes.get(parent.refs[pidx + 1]);
         if (ch1.isLeaf) {
-            // collect all records
+            // собирать все записи
             long[] keys = new long[ch1.keysCount + ch2.keysCount];
             int[] refs = new int[keys.length + 1];
             arraycopy(ch1.keys, 0, keys, 0, ch1.keysCount);
             arraycopy(ch2.keys, 0, keys, ch1.keysCount, ch2.keysCount);
             arraycopy(ch1.refs, 0, refs, 0, ch1.keysCount);
             arraycopy(ch2.refs, 0, refs, ch1.keysCount, ch2.keysCount + 1);
-            // distribute records to nodes
+            // распространять записи на узлы
             ch1.keysCount = keys.length / 2;
             ch2.keysCount = keys.length - ch1.keysCount;
             arraycopy(keys, 0, ch1.keys, 0, ch1.keysCount);
@@ -215,10 +215,10 @@ public class Btree {
             ch1.refs[ch1.keysCount] = parent.refs[pidx + 1];
             arraycopy(keys, ch1.keysCount, ch2.keys, 0, ch2.keysCount);
             arraycopy(refs, ch1.keysCount, ch2.refs, 0, ch2.keysCount + 1);
-            // change key in parent
+            // изменить ключ в родительском
             parent.keys[pidx] = ch1.keys[ch1.keysCount - 1];
         } else {
-            // collect all records
+            // собирать все записи
             long[] keys = new long[ch1.keysCount + 1 + ch2.keysCount];
             int[] refs = new int[keys.length + 1];
             arraycopy(ch1.keys, 0, keys, 0, ch1.keysCount);
@@ -226,7 +226,7 @@ public class Btree {
             arraycopy(ch2.keys, 0, keys, ch1.keysCount + 1, ch2.keysCount);
             arraycopy(ch1.refs, 0, refs, 0, ch1.keysCount + 1);
             arraycopy(ch2.refs, 0, refs, ch1.keysCount + 1, ch2.keysCount + 1);
-            // distribute records to nodes
+            // распространять записи на узлы
             ch1.keysCount = keys.length / 2;
             ch2.keysCount = keys.length - ch1.keysCount;
             arraycopy(keys, 0, ch1.keys, 0, ch1.keysCount);
